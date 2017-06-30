@@ -27,6 +27,8 @@ and put the extract the data to ./data/
 
 ####Run the code
 
+Change Matlab link in all the files in ./script/
+
 cd ./script
 
 Generate transformed patch and train the model
