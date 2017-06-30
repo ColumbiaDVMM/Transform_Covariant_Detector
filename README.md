@@ -17,8 +17,13 @@ Python package:
 tensorflow>1.0.0, tqdm, cv2, exifread, skimage, glob
 
 ###Usage
+####Get the data
 Download data from 
+https://www.dropbox.com/s/l7a8zvni6ia5f9g/datasets.tar.gz?dl=0
 
+and put the extract the data to ./data/
+
+####Run the code
 cd ./script
 
 Generate transformed patch and train the model
