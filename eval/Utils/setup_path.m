@@ -50,8 +50,8 @@ if doSetupPath
     bSetupPathFin = true;
 
 addpath(sRoot);
-addpath(genpath([sRoot '/src/KeypointDetectors']));
-addpath(genpath([sRoot '/src/Utils']));
+addpath(genpath([sRoot '/KeypointDetectors']));
+addpath(genpath([sRoot '/Utils']));
 addpath([sRoot '/filters']);
 addpath([sRoot '/external/vlfeat-0.9.18/toolbox/']);
 addpath([sRoot '/external/dollarToolbox']);

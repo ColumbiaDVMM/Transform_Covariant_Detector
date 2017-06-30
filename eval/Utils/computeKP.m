@@ -34,7 +34,6 @@
 % 
 %% Code:
 
-
 function Allrepeatability = computeKP(parameters)
 
     nameDataset = parameters.nameDataset;%for saving at the end
@@ -111,8 +110,7 @@ function Allrepeatability = computeKP(parameters)
         
     end
     AllrepeatabilityCross = cell2mat(AllrepeatabilityCross);
-    
-    save(['../../result/' nameDataset '_' num2str(numberOfKeypoints{1}) '_' parameters.repeatabilityType]);
+    save(['../result/' nameDataset '_' num2str(numberOfKeypoints{1}) '_' parameters.repeatabilityType]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% computeKP.m ends here

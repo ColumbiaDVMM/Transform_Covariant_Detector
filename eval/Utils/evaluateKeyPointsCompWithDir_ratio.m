@@ -35,7 +35,7 @@
 %% Code:
 
 
-function [eval_result] = evaluateKeyPointsCompWithDir_ratio( trainset_name, testset_name, list_method, num_key, parameters)
+function [eval_result] = evaluateKeyPointsCompWithDir_ratio(trainset_name, testset_name, list_method, num_key, parameters)
 global sRoot;  
 
 %for params tuning
@@ -52,11 +52,11 @@ global sRoot;
 fprintf('Setting up configuration\n');
 nameFolder = testset_name;
 %[p] = setup_config_test(nameFolder); % load parameters for specific dataset
-p.dataset_name  = nameFolder;
+p.subset_name  = nameFolder;
 p.trainset_name = trainset_name;
 p.testset_name = testset_name;
 p.omp_num_threads = '16';
-p.rootTest = [sRoot '/../data/' p.dataset_name '/test'];
+p.rootTest = [sRoot '/../data/datasets/' parameters.nameDataset '/' p.subset_name '/test'];
 p.test_img_list_filename = fullfile(p.rootTest,'test_imgs.txt');
 p.optionalTildeSuffix = parameters.optionalTildeSuffix;
 p.repeatabilityType = parameters.repeatabilityType;

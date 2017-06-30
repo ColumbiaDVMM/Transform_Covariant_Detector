@@ -3,12 +3,15 @@ warning off backtrace
 
 addpath('Utils');
 global sRoot;
-tmp = mfilename('fullpath');tmp =  strsplit(tmp, '/');tmp= tmp(1:end-2);
+tmp = mfilename('fullpath');
+tmp =  strsplit(tmp, '/');
+tmp= tmp(1:end-1);
 sRoot = strjoin(tmp,'/');
+disp(sRoot)
 setup_path
 
-
-dataset_name = {'VggAffineDataset','EFDataset','WebcamDataset'};
+%dataset_name = {'VggAffineDataset','EFDataset','WebcamDataset'};
+dataset_name = {'VggAffineDataset'};
 for i = 1:numel(dataset_name)
     parameters.nameDataset = dataset_name{i};%for saving at the end
     if(strcmp(parameters.nameDataset,'VggAffineDataset'))
@@ -20,9 +23,6 @@ for i = 1:numel(dataset_name)
     if(strcmp(parameters.nameDataset,'WebcamDataset'))
         parameters.testsets = {'Panorama','Chamonix', 'StLouis', 'Courbevoie', 'Frankfurt'};
     end
-    if(strcmp(parameters.nameDataset,'ViewPointsDataset'))
-        parameters.testsets = {'chatnoir','duckhunt', 'mario', 'outside', 'posters'};
-    end
     %
    
     parameters.models = {'Mexico'};
@@ -30,8 +30,9 @@ for i = 1:numel(dataset_name)
 
     parameters.numberOfKeypoints  = {1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000};
     parameters.repeatabilityType = 'OXFORD';
-    parameters.list_method = {'TILDEP', 'TILDEP24', 'DDetPoint', 'LearnedConvolutional', 'CovariantPoint'}';
-    computeKP(parameters);
+    parameters.list_method = {'CovariantPoint'}';
+    Allrepeatability = computeKP(parameters);
+    disp(Allrepeatability);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% evaluate_OxfordEFDataset_1000.m ends here
