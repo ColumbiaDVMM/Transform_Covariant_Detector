@@ -1,10 +1,7 @@
 """
-The module convert individual feature file to a whole feature file and calulate the index of each descriptor in the file.
+Train a detector with standard patches and transformed patches.
 
-Usage: convert_to_bvecs_python.py dataset [option]
-
-Dataset: datasets to index.
-   Supported: NC2017_Dev1_Beta4, NC2017_Dev2_Beta1, ...
+Usage: python patch_network_train_point.py --training mexico_tilde_p24_Mexico_train_point --test mexico_tilde_p24_Mexico_test_point [Option]
 
 General options:
     --learning_rate Starting learning rate (default 0.01)
@@ -22,23 +19,22 @@ Output:
     
 Examples:
 
-    Get the index
-
-    >>> python patch_network_train_point.py 
+    >>> python patch_network_train_point.py --training mexico_tilde_p24_Mexico_train_point --test mexico_tilde_p24_Mexico_test_point 
+    
 """
 
 from __future__ import print_function
 
 import tensorflow as tf
-from tensorflow.contrib import rnn
 import gc
 import patch_reader
-import patch_cnn_point
+import patch_cnn
 import numpy as np
 from scipy.spatial import distance
 import scipy.io as sio
 import pickle
 from tqdm import tqdm
+from datetime import datetime
 
 import argparse
 
@@ -46,10 +42,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--learning_rate", nargs='?', type=float, default = 0.01,
                     help="learning rate")
 
-parser.add_argument("--training", nargs='?', type=str, default = 'mexico_patch_train_2d_new',
+parser.add_argument("--training", nargs='?', type=str, default = 'mexico_tilde_p24_Mexico_train_point',
                     help="Training dataset name")
 
-parser.add_argument("--test", nargs='?', type=str, default = 'mexico_patch_test_2d_new',
+parser.add_argument("--test", nargs='?', type=str, default = 'mexico_tilde_p24_Mexico_test_point',
                     help="Training dataset name")
 
 parser.add_argument("--alpha", nargs='?', type=float, default = 1.0,
@@ -74,14 +70,16 @@ start_learning_rate = args.learning_rate
 num_epoch = args.num_epoch
 display_step = 100
 batch_size =args.batch_size
+patch_size =args.patch_size
 num_epoch = args.num_epoch
-suffix = 'LR{:1.0e}_alpha{:1.1e}'.format(start_learning_rate,args.alpha)
+now = datetime.now()
+suffix = 'LR{:1.0e}_alpha{:1.1e}'.format(start_learning_rate,args.alpha) + now.strftime("%Y%m%d-%H%M%S")
 descriptor_dim = args.descriptor_dim
 
-train = patch_reader.SiameseDataSet('/home/xuzhang/project/Medifor/data/patch_set/train_pair/')
+train = patch_reader.SiameseDataSet('../data/patch_set/train_pair/')
 train.load_by_name(args.training, patch_size = patch_size)
 
-test = patch_reader.SiameseDataSet('/home/xuzhang/project/Medifor/data/patch_set/train_pair/')
+test = patch_reader.SiameseDataSet('../data/patch_set/train_pair/')
 test.load_by_name(args.test, patch_size = patch_size)
 
 print('Loading training stats:')
@@ -123,9 +121,9 @@ CNNConfig = {
     "descriptor_dim" : descriptor_dim,
     "batch_size" : batch_size,
     "alpha" : args.alpha,
-    "train_flag": False
+    "train_flag": True
 }
-cnn_model = patch_cnn_point.PatchCNN_point(CNNConfig)
+cnn_model = patch_cnn.PatchCNN(CNNConfig)
 
 #time decayed learning rate
 global_step = tf.Variable(0, trainable=False)
@@ -176,6 +174,9 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
                      cnn_model.patch_t: patches_train_t[index], \
                      cnn_model.label: patches_train_label[index]})
                 
+                #print(result["o1"][0:1])
+                #print(result["o2"][0:1]) 
+                
                 training_writer.add_summary(summary, tf.train.global_step(sess, global_step))
                 epoch_loss = epoch_loss+result["cost"]
 
@@ -185,11 +186,14 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
                     "cost": cnn_model.cost,
                     "inver": cnn_model.inver_loss,
                     "covar_loss": cnn_model.covariance_loss,
+                    "o1" : cnn_model.o1_flat, 
                 }
+                
                 summary, result = sess.run([merged,fetch], feed_dict={cnn_model.patch: patches_test[index], \
                      cnn_model.patch_t: patches_test_t[index], \
                      cnn_model.label: patches_test_label[index]})
-
+                #print('test')
+                #print(result["o1"][0:1])
                 test_writer.add_summary(summary, tf.train.global_step(sess, global_step))
         #save model
         if i > 0 and (i+1)%5==0:

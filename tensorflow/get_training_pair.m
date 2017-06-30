@@ -2,12 +2,12 @@ clc;close all;
 
 working_dir = '../data/patch_set/';
 dataset_name = 'mexico_tilde_p24_Mexico';
-load([working_dir, dataset_name, '_patches.mat']);
+load([working_dir, 'standard_patch/' dataset_name, '_patches.mat']);
 
 training_number = 256000;
 test_number = 128;
 training_offset = 0;
-offset = 40000;
+offset = 5000;
 stride = 1;
 total_number = training_number+test_number;
 seed = 0;
@@ -15,6 +15,7 @@ rng(seed);
 
 feature_dim = 2;
 
+%generate random rotation
 translation = (2*rand(total_number,2)-1)*8;
 rotation = (2*rand(total_number,1)-1)*pi;
 shear = (2*rand(total_number,2)-1)*0.15;
@@ -41,7 +42,8 @@ parpool;
 parfor i = 1:total_number
     I = patches(i,:,:,:);
     I = squeeze(I);
-    
+    I = permute(I,[2,3,1]);
+
     tmp_translation = round(translation(i,:));
 
     identity_matrix = eye(3);
@@ -55,6 +57,7 @@ parfor i = 1:total_number
     affine_matrix = shear_matrix*scale_matrix*rotation_matrix*identity_matrix;
     tform = affine2d(affine_matrix');
     
+    %transform patches 
     J = imwarp(I,tform,'linear','FillValues',[0,0,0]);
 
     I_center_x = round(size(J,2)/2);
@@ -62,6 +65,8 @@ parfor i = 1:total_number
 
     J_center_x = round(size(J,2)/2)+tmp_translation(1);
     J_center_y = round(size(J,1)/2)+tmp_translation(2);
+
+    %check boundary
     if J_center_x < patch_size+1
         J_center_x = patch_size+1;
         tmp_translation(1) = patch_size + 1 - round(size(J,2)/2);
@@ -80,11 +85,15 @@ parfor i = 1:total_number
         tmp_translation(2) = size(J,1) - patch_size - round(size(J,1)/2);
     end
 
+    %standard patch, we add some rotation and shearing to standard patch
     crop_I = J(I_center_y-patch_size+1:I_center_y+patch_size,...
         I_center_x-patch_size+1:I_center_x+patch_size,:);
+    
+    %transformed patch
     crop_J = J(J_center_y-patch_size+1:J_center_y+patch_size,...
         J_center_x-patch_size+1:J_center_x+patch_size,:);
-
+    
+    %gt transform
     transform_matrix(i,:) = [tmp_translation(1)./(patch_size*2/3.0),tmp_translation(2)./(patch_size*2/3.0)];
 
     crop_I = permute(crop_I,[3,1,2]);
@@ -101,12 +110,12 @@ total_transform_matrix = transform_matrix;
 im = total_im(1:training_number,:,:,:);
 warped_im = total_warped_im(1:training_number,:,:,:);
 transform_matrix = total_transform_matrix(1:training_number,:);
-save([working_dir, 'train_pair/' dataset_name '_train_point_sift.mat'],'im','warped_im','transform_matrix');
+save([working_dir, 'train_pair/' dataset_name '_train_point.mat'],'im','warped_im','transform_matrix');
 
 index = training_number+1;
 im = total_im(index:(index+test_number-1),:,:,:);
 warped_im = total_warped_im(index:(index+test_number-1),:,:,:);
 transform_matrix = total_transform_matrix(index:(index+test_number-1),:);
 
-save([working_dir, 'train_pair/', dataset_name '_test_point_sift.mat'],'im','warped_im','transform_matrix');
+save([working_dir, 'train_pair/', dataset_name '_test_point.mat'],'im','warped_im','transform_matrix');
 %fclose(fout);

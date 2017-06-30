@@ -2,7 +2,7 @@ function point_extractor_2d_NC17(datasets_name, load_feature_name, save_feature_
 
 maxsize = 1024*768;
 %Change this to your own vlfeat folder
-addpath(genpath('~/tool/vlfeat-0.9.20/toolbox/'));
+addpath(genpath('../eval/external/vlfeat-0.9.18/toolbox/mex/'));
 
 dir_name = ['../data/'];
 
@@ -14,32 +14,35 @@ elseif strcmp(datasets_name, 'WebcamDataset')
     subsets = {'Chamonix','Courbevoie','Frankfurt','Mexico','Panorama','StLouis'};
 end
 
+%change point number to fix multiscale.
+point_number = point_number/2;
 pyramid_level = 5;
 real_scale = 10;
 
-image_list = load_image_list_NC17([dir_name datasets_name '/'], datasets_name);
-[s, mess, messid] = mkdir([dir_name datasets_name '/' save_feature_name '/']);
+image_list = load_image_list([dir_name datasets_name '/'], datasets_name);
+[s, mess, messid] = mkdir([dir_name save_feature_name '/' datasets_name '/']);
 
 for set_index = 1:numel(subsets)
     subset = subsets{set_index};
-    image_list = load_image_list([dir_name 'datasets/' datasets_name '/'], subset);
+    image_list = load_image_list([dir_name 'datasets/' datasets_name '/'], [subset '/test/image_color/']);
     [s, mess, messid] = mkdir([dir_name save_feature_name '/' datasets_name '/' subset '/']);
     for i = 1:numel(image_list)
-        
         feature = [];
         score = []; 
-        
         try
-            image = imread([dir_name 'datasets/' datasets_name '/' subset '/' image_list(i).name]);
+            disp([dir_name 'datasets/' datasets_name '/' subset '/test/image_color/' image_list(i).name]);
+            image = imread([dir_name 'datasets/' datasets_name '/' subset '/test/image_color/' image_list(i).name]);
             x = load([dir_name load_feature_name '/' datasets_name '/' subset '/' image_list(i).name(1:end-4) '.mat']);
         catch
             disp(image_list(i).name);
+            disp('bad load');
             save([dir_name save_feature_name '/' datasets_name '/' subset '/' image_list(i).name(1:end-4) '.mat'],'feature','score');
             continue;
         end
     
         if numel(x.output_list) == 0
             disp(image_list(i).name);
+            disp('no source')
             save([dir_name save_feature_name '/' datasets_name '/' subset '/' image_list(i).name(1:end-4) '.mat'],'feature','score');
             continue;
         end

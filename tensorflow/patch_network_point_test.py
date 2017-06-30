@@ -1,10 +1,34 @@
+"""
+Run trained detector with image to get feature map
+
+Usage: python patch_network_test_point.py --train_name mexico_tilde_p24_Mexico_train_point_translation_iter_20 --stats_name mexico_tilde_p24_Mexico_train_point --dataset_name VggAffineDataset --save_feature covariant_point_tilde 
+
+General options:
+    --training      Name of the training dataset
+    --stats_name    Name of the mean and the variance of the patches
+    --dataset_name  dataset name (option VggAffineDataset, EFDataset, WebcamDataset)         
+    --save_feature  name to save the feature
+    --alpha         Trade-off parameter between invertible loss and covariant loss
+    --descriptor_dim Number of the parameter for transformation (translation 2)
+    --patch_size    Default 32
+
+Output:
+    
+    feature map
+    
+Examples:
+
+    >>> python patch_network_test_point.py --train_name mexico_tilde_p24_Mexico_train_point_translation_iter_20 --stats_name mexico_tilde_p24_Mexico_train_point --dataset_name VggAffineDataset --save_feature covariant_point_tilde
+    
+"""
+
 from __future__ import print_function
 
 import tensorflow as tf
 from tensorflow.contrib import rnn
 import gc
 import patch_reader
-import patch_cnn_point_test
+import patch_cnn
 import numpy as np
 from scipy.spatial import distance
 import scipy.io as sio
@@ -13,8 +37,10 @@ import pickle
 import cv2
 import os
 from skimage.transform import pyramid_gaussian
-
+import exifread
 import argparse
+
+from datetime import datetime
 
 def read_image_from_name(file_name):
     """Return the factorial of n, an exact integer >= 0. Image rescaled to no larger than 1024*768
@@ -34,14 +60,11 @@ def read_image_from_name(file_name):
         
     if img.shape[2] == 1 :
             img = np.repeat(img, 3, axis = 2)
-    #if img.shape[2] == 3 :
-        #img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     ftest = open(file_name, 'rb')
     tags = exifread.process_file(ftest)
     
     try:
-        #print(tags['Thumbnail Orientation'])
         if str(tags['Thumbnail Orientation']) == 'Rotated 90 CW':
             img = cv2.transpose(img)  
             img = cv2.flip(img, 1)
@@ -60,38 +83,42 @@ def read_image_from_name(file_name):
         
     return img, ratio
 
-parser.add_argument("--train_name", nargs='?', type=str, default = 'mexico_patch_train_2d_gp_2d_iter_5',
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--train_name", nargs='?', type=str, default = 'mexico_tilde_p24_Mexico_train_point_translation_iter_20',
                     help="Training dataset name")
 
-parser.add_argument("--stats_name", nargs='?', type=str, default = 'mexico_patch_train_2d',
+parser.add_argument("--stats_name", nargs='?', type=str, default = 'mexico_tilde_p24_Mexico_train_point',
                     help="Training dataset name")
 
 parser.add_argument("--dataset_name", nargs='?', type=str, default = 'VggAffineDataset',
                     help="Training dataset name")
 
-parser.add_argument("--save_feature", nargs='?', type=str, default = 'covariant_point_2d',
+parser.add_argument("--save_feature", nargs='?', type=str, default = 'covariant_point_tilde',
                     help="Training dataset name")
 
 parser.add_argument("--alpha", nargs='?', type=float, default = 1.0,
                     help="alpha")
 
 parser.add_argument("--descriptor_dim", nargs='?', type=int, default = 2,
-                    help="Number of embedding dimemsion")args = parser.parse_args()
+                    help="Number of embedding dimemsion")
 
-parser = argparse.ArgumentParser()
+parser.add_argument("--patch_size", nargs='?', type=int, default = 32,
+                    help="Size of the patch")
 
+args = parser.parse_args()
 train_name = args.train_name
 stats_name = args.stats_name
 dataset_name = args.dataset_name
 save_feature_name = args.save_feature 
 
 # Parameters
-patch_size = 32
+patch_size = args.patch_size
 batch_size = 128
 descriptor_dim = args.descriptor_dim
 
 print('Loading training stats:')
-file = open('../tensorflow_model/stats_%s.pkl'%stats_name, 'r')
+file = open('../data/stats_%s.pkl'%stats_name, 'r')
 mean, std = pickle.load(file)
 print(mean)
 print(std)
@@ -101,10 +128,10 @@ CNNConfig = {
     "descriptor_dim" : descriptor_dim,
     "batch_size" : batch_size,
     "alpha" : args.alpha,
-    "train_flag" : True
+    "train_flag" : False
 }
 
-cnn_model = patch_cnn_point.PatchCNN(CNNConfig)
+cnn_model = patch_cnn.PatchCNN(CNNConfig)
 
 #dataset information
 subsets = []
@@ -120,6 +147,9 @@ if dataset_name=='WebcamDataset' :
 working_dir = '../data/'
 load_dir = working_dir + 'datasets/' + dataset_name
 save_dir = working_dir + save_feature_name + '/' + dataset_name
+
+if not os.path.exists(working_dir + save_feature_name + '/'):
+    os.mkdir(working_dir + save_feature_name + '/')
 
 if not os.path.exists(save_dir):
     os.mkdir(save_dir)
@@ -139,11 +169,11 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         index = 1
         if not os.path.exists(save_dir + '/' + subset) :
             os.mkdir(save_dir + '/' + subset)
-        for file in glob.glob(load_dir + '/' + subset + '/*.*') :
+        for file in glob.glob(load_dir + '/' + subset + '/test/image_color/*.*') :
             file = os.path.basename(file)
             output_list = []
             if file.endswith(".ppm") or file.endswith(".pgm") or file.endswith(".png") or file.endswith(".jpg") :
-                image_name = load_dir +  '/' + subset + '/' + file
+                image_name = load_dir +  '/' + subset + '/test/image_color/' + file
                 print(image_name)
                 save_file = file[0:-4] + '.mat'
                 save_name =  save_dir + '/' + subset + '/' + save_file
