@@ -17,13 +17,16 @@ Python package:
 tensorflow>1.0.0, tqdm, cv2, exifread, skimage, glob
 
 ###Usage
+
 ####Get the data
+
 Download data from 
 https://www.dropbox.com/s/l7a8zvni6ia5f9g/datasets.tar.gz?dl=0
 
 and put the extract the data to ./data/
 
 ####Run the code
+
 cd ./script
 
 Generate transformed patch and train the model
@@ -64,7 +67,8 @@ for providing the image data.
 
 [2] Y. Verdie, K. M. Yi, P. Fua, and V. Lepetit. Tilde: A temporally invariant learned detector. CVPR 2015
 
-[3] K. Lenc and A. Vedaldi. Learning covariant feature detectors. In ECCV Workshop on Geometry Meets Deep Learning,2016.
+[3] K. Lenc and A. Vedaldi. Learning covariant feature detectors. In ECCV Workshop on Geometry Meets Deep Learning,
+2016.
 
 [4] K. Mikolajczyk, T. Tuytelaars, C. Schmid, A. Zisserman, J. Matas, F. Schaffalitzky, T. Kadir and L. Van Gool, A comparison of affine region detectors. IJCV 2005.
 
