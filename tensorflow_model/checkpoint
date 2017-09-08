@@ -1,0 +1,2 @@
+model_checkpoint_path: "mexico_tilde_p24_Mexico_train_point_translation_iter_20_model.ckpt"
+all_model_checkpoint_paths: "mexico_tilde_p24_Mexico_train_point_translation_iter_20_model.ckpt"
