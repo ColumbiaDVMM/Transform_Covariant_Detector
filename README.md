@@ -1,4 +1,4 @@
-##Learning Discriminative and Transformation Covariant Local Feature Detectors
+## Learning Discriminative and Transformation Covariant Local Feature Detectors
 
 This code is the training and evaluation code for our CVPR 2017 paper. It includes the implement of a translation covariant local feature detector. The affine covariant model will be added in the future. 
 
@@ -11,39 +11,39 @@ This code is the training and evaluation code for our CVPR 2017 paper. It includ
 
 The code is tested on Ubuntu 14.04
 
-###Requirement
+### Requirement
 Python package:
 
 tensorflow>1.0.0, tqdm, cv2, exifread, skimage, glob
 
-###Usage
+### Usage
 
-####Get the data
+#### Get the data
 
 Download data from 
 https://www.dropbox.com/s/l7a8zvni6ia5f9g/datasets.tar.gz?dl=0
 
 and put the extract the data to ./data/
 
-####Run the code
+#### Run the code
 
-Change Matlab link in all the files in ./script/
+Change Matlab link in all the files in `./script/`
 
-cd ./script
+`cd ./script`
 
 Generate transformed patch and train the model
 
-./batch\_run_train.sh
+`./batch\_run_train.sh`
 
 Extract local feature point
 
-./batch\_run_test.sh
+`./batch\_run_test.sh`
 
 Evaluate the performance
 
-./batch\_run_eval.sh
+`./batch\_run_eval.sh`
 
-###Acknowledgement
+### Acknowledgement 
 
 We would like to thank
 
